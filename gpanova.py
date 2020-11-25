@@ -1,6 +1,6 @@
+import numpy as np
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import pairwise_kernels
-import numpy as np
 from scipy.special import erf
 
 
@@ -13,6 +13,12 @@ class GpAnova:
             np.sum([self.z[i]*np.prod([self.prod_d(i, d)
                                        for d in range(self.dim)]) for i in range(self.size)])
         return f_0
+
+    def prod_ijt(self, i, j, t):
+        return np.sqrt(np.pi/2)/(2*self.c[t]) \
+            * np.exp(-0.5*self.c[t]**2*(self.X[i, t] - self.X[j, t])**2) \
+            * (erf(self.c[t]/np.sqrt(2)*(self.X[i, t] + self.X[j, t]))
+               - erf(self.c[t]/np.sqrt(2)*(self.X[i, t] + self.X[j, t]-2)))
 
     def prod_ij(self, i, j):
         return self.z[i] * self.z[j] * np.prod([self.prod_ijt(i, j, t) for t in range(self.dim)])
@@ -30,12 +36,6 @@ class GpAnova:
 
     def P_i(self, i, t):
         return np.prod([self.prod_d(i, d) for d in range(self.dim) if d != t])
-
-    def prod_ijt(self, i, j, t):
-        return np.sqrt(np.pi/2)/(2*self.c[t]) \
-            * np.exp(-0.5*self.c[t]**2*(self.X[i, t] - self.X[j, t])**2) \
-            * (erf(self.c[t]/np.sqrt(2)*(self.X[i, t] + self.X[j, t]))
-               - erf(self.c[t]/np.sqrt(2)*(self.X[i, t] + self.X[j, t]-2)))
 
     def main_effect(self, t):
         f0 = self.f0()
